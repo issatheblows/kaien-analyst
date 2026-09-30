@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>kaien analyst</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="brand"><span class="logo" aria-hidden="true">◆</span> kaien analyst</div>
+      <p class="sub">Аналитика финансового контента в X · AI-посты · quote-публикация с лимитами</p>
+    </div>
+    <div class="top-status">
+      <span id="mode-pill" class="pill">—</span>
+      <button id="panic" class="danger" type="button">Аварийная остановка</button>
+    </div>
+  </header>
+
+  <nav class="tabs" aria-label="Разделы">
+    <button class="tab active" type="button" data-tab="analytics">Аналитика</button>
+    <button class="tab" type="button" data-tab="videos">Видео</button>
+    <button class="tab" type="button" data-tab="queue">Очередь <span id="queue-badge" class="badge" hidden></span></button>
+    <button class="tab" type="button" data-tab="settings">Настройки</button>
+    <button class="tab" type="button" data-tab="logs">Логи</button>
+  </nav>
+
+  <!-- ANALYTICS -->
+  <section id="tab-analytics" class="panel">
+    <div class="kpis">
+      <article class="kpi"><div class="kpi-label">Постов в базе</div><div id="k-total" class="kpi-value">—</div></article>
+      <article class="kpi"><div class="kpi-label">Финансовых</div><div id="k-finance" class="kpi-value">—</div></article>
+      <article class="kpi"><div class="kpi-label">С видео</div><div id="k-videos" class="kpi-value">—</div></article>
+      <article class="kpi"><div class="kpi-label">Медиана просмотров</div><div id="k-median" class="kpi-value">—</div></article>
+      <article class="kpi"><div class="kpi-label">Опубликовано сегодня</div><div id="k-sent" class="kpi-value accent">—</div></article>
+    </div>
+
+    <div id="empty-hint" class="card hint" hidden>
+      <h2>Данных пока нет</h2>
+      <p>Откройте x.com, нажмите <b>«Финансовые видео»</b> в панели <code>[ KAIEN ANALYST ]</code>, затем <b>«Сканировать»</b>. Расширение запомнит посты и их просмотры, и здесь появится аналитика.</p>
+    </div>
+
+    <div class="grid-2">
+      <section class="card">
+        <div class="card-head"><h2>Как писать пост</h2><button id="ai-insights" type="button">AI-разбор</button></div>
+        <ul id="tips" class="tips"></ul>
+        <div id="ai-insights-out" class="ai-out" hidden></div>
+      </section>
+      <section class="card">
+        <h2>Темы · медиана просмотров</h2>
+        <div id="c-topics" class="bars"></div>
+      </section>
+    </div>
+
+    <div class="grid-3">
+      <section class="card"><h2>Формат</h2><div id="c-media" class="bars"></div></section>
+      <section class="card"><h2>Первая строка (хук)</h2><div id="c-hooks" class="bars"></div></section>
+      <section class="card"><h2>Длина текста</h2><div id="c-length" class="bars"></div></section>
+    </div>
+
+    <section class="card">
+      <h2>Час публикации · медиана просмотров <span class="muted">(ваше время)</span></h2>
+      <div id="c-hours" class="columns" role="img" aria-label="Медиана просмотров по часу публикации"></div>
+    </section>
+
+    <section class="card">
+      <h2>Авторы, которые чаще всего попадают в топ</h2>
+      <div class="table-wrap"><table class="table"><thead><tr><th>Автор</th><th class="num">Постов</th><th class="num">Медиана просмотров</th><th class="num">Вовлечённость</th></tr></thead><tbody id="t-authors"></tbody></table></div>
+    </section>
+  </section>
+
+  <!-- VIDEOS -->
+  <section id="tab-videos" class="panel" hidden>
+    <div class="filters">
+      <label>Мин. просмотров <input id="f-minViews" type="number" min="0" step="1000"></label>
+      <label>Не старше, ч <input id="f-maxAgeHours" type="number" min="1"></label>
+      <label class="check"><input id="f-onlyVideo" type="checkbox"> Только видео</label>
+      <label class="check"><input id="f-showUsed" type="checkbox"> Показывать использованные</label>
+      <span id="v-count" class="muted"></span>
+    </div>
+    <div class="videos-layout">
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>#</th><th>Пост</th><th class="num">Просмотры</th><th class="num">ER</th><th class="num">Возраст</th><th></th></tr></thead>
+          <tbody id="t-videos"></tbody>
+        </table>
+      </div>
+      <aside class="card editor" id="editor">
+        <h2>Пост под видео</h2>
+        <div id="ed-source" class="ed-source muted">Выберите видео слева и нажмите «Написать пост».</div>
+        <textarea id="ed-text" rows="7" placeholder="Текст поста появится здесь — его можно править"></textarea>
+        <div class="ed-meta"><span id="ed-len">0 / 256</span><span class="muted">+ цитата оригинала</span></div>
+        <div class="row">
+          <button id="ed-regen" type="button" disabled>Сгенерировать заново</button>
+          <button id="ed-queue" type="button" disabled>В очередь</button>
+          <button id="ed-open" class="primary" type="button" disabled>Открыть в X</button>
+        </div>
+        <div id="ed-status" class="status"></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- QUEUE -->
+  <section id="tab-queue" class="panel" hidden>
+    <section class="card">
+      <div class="card-head">
+        <h2>Управление</h2>
+        <span id="runner-status" class="muted"></span>
+      </div>
+      <div class="row">
+        <button id="q-start" type="button">Запустить очередь (Подтверждение)</button>
+        <button id="q-auto-on" class="primary" type="button">Включить автопилот</button>
+        <button id="q-auto-off" type="button">Выключить автопилот</button>
+        <button id="q-clear" type="button">Убрать завершённые</button>
+      </div>
+      <p class="note">Черновик — открывает X с готовым текстом и цитатой, публикуете вы. Подтверждение — открывает посты из очереди по одному и ждёт вашей отправки. Автоматический — сам выбирает топ-видео, пишет и публикует пост в активные часы с паузами и дневным лимитом.</p>
+      <div id="q-status" class="status"></div>
+    </section>
+    <div id="q-list" class="q-list"></div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="tab-settings" class="panel" hidden>
+    <div class="grid-2">
+      <section class="card">
+        <h2>Аккаунт и режим</h2>
+        <div class="fields">
+          <label>Режим<select id="mode"><option value="draft">Черновик</option><option value="confirm">Подтверждение</option><option value="auto">Автоматический</option></select></label>
+          <label>Ваш @ник<input id="myHandle" placeholder="kaienphase"></label>
+          <label>Язык постов<select id="language"><option>English</option><option>Russian</option><option>Spanish</option><option>German</option></select></label>
+          <label>Длина поста<select id="maxChars"><option value="280">280 (обычный аккаунт)</option><option value="4000">4000 (X Premium)</option></select></label>
+        </div>
+      </section>
+      <section class="card">
+        <h2>Лимиты</h2>
+        <div class="fields">
+          <label>Постов в день<input id="dailyCap" type="number" min="1" max="30"></label>
+          <label>Пауза между постами, от мин<input id="minDelayMin" type="number" min="10"></label>
+          <label>Пауза между постами, до мин<input id="maxDelayMin" type="number" min="10"></label>
+          <label>Перед автоотправкой, от с<input id="preSendMinSec" type="number" min="1"></label>
+          <label>Перед автоотправкой, до с<input id="preSendMaxSec" type="number" min="1"></label>
+          <label>Активные часы, с<input id="activeFrom" type="number" min="0" max="23"></label>
+          <label>Активные часы, до<input id="activeTo" type="number" min="0" max="23"></label>
+        </div>
+      </section>
+      <section class="card">
+        <h2>Поиск видео</h2>
+        <div class="fields">
+          <label>Мин. просмотров<input id="minViews" type="number" min="0" step="1000"></label>
+          <label>Не старше, часов<input id="maxAgeHours" type="number" min="1"></label>
+          <label>Прокруток за скан<input id="scanScrolls" type="number" min="1" max="60"></label>
+          <label class="check"><input id="onlyVideo" type="checkbox"> Только посты с видео</label>
+          <label class="full">Свои ключевые слова (через запятую)<input id="extraKeywords" placeholder="Tesla, Nvidia, dividends"></label>
+        </div>
+      </section>
+      <section class="card">
+        <h2>AI</h2>
+        <div class="row"><button id="openrouter" type="button">OpenRouter Free</button><button id="resetPersona" type="button">Сбросить стиль</button></div>
+        <div class="fields">
+          <label class="full">Endpoint<input id="endpoint"></label>
+          <label>API path<input id="apiPath"></label>
+          <label>Model<input id="model"></label>
+          <label class="full">API key<input id="apiKey" type="password" autocomplete="off"></label>
+          <label class="full">Стиль аккаунта (prompt)<textarea id="persona" rows="6"></textarea></label>
+        </div>
+      </section>
+    </div>
+    <div class="row sticky-actions">
+      <button id="save" class="primary" type="button">Сохранить настройки</button>
+      <button id="export" type="button">Экспорт данных CSV</button>
+      <button id="wipe" class="danger" type="button">Очистить собранные посты</button>
+      <span id="s-status" class="status"></span>
+    </div>
+  </section>
+
+  <!-- LOGS -->
+  <section id="tab-logs" class="panel" hidden>
+    <section class="card">
+      <div class="card-head"><h2>Журнал</h2><button id="clearLogs" type="button">Очистить</button></div>
+      <pre id="logs" class="logs"></pre>
+    </section>
+  </section>
+</div>
+<div id="tooltip" class="tooltip" role="tooltip" hidden></div>
+<script src="domain.js"></script>
+<script src="options.js"></script>
+</body>
+</html>
