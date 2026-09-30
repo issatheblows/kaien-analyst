@@ -1,0 +1,11 @@
+# Local secrets and editor/system files
+.env
+.env.*
+!.env.example
+*.log
+*.zip
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+node_modules/
